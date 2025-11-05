@@ -1,13 +1,22 @@
-FROM amazoncorretto:21 AS build
+# ---- Build Stage ----
+FROM amazoncorretto:23 AS build
 
 WORKDIR /app
 COPY . .
+
+# Install findutils, make gradlew executable, and build the JAR
 RUN yum install -y findutils && \
     chmod +x gradlew && \
     ./gradlew bootJar --no-daemon
 
-FROM amazoncorretto:21
+# ---- Runtime Stage ----
+FROM amazoncorretto:23
+
 WORKDIR /app
 EXPOSE 8080
+
+# Copy the built JAR from the build stage
 COPY --from=build /app/build/libs/*.jar app.jar
+
+# Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
