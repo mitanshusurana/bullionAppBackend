@@ -23,25 +23,25 @@ import java.util.List;
 @org.springframework.stereotype.Service
 public class serviceImpl implements Service {
 
-    @Autowired
-    UserRepo userRepo;
+  @Autowired
+  UserRepo userRepo;
 
-    @Autowired
-    TransRepo transRepo;
+  @Autowired
+  TransRepo transRepo;
 
   @Autowired
   private MongoTemplate mongoTemplate;
-    @Override
-    public List<User> getNames() {
-        return userRepo.findAll();
-    }
+  @Override
+  public List<User> getNames() {
+    return userRepo.findAll();
+  }
 
-    @Override
-    public User createParty(User user)
-    {
+  @Override
+  public User createParty(User user)
+  {
 
-        return userRepo.insert(user);
-}
+    return userRepo.insert(user);
+  }
 
   @Override
   public Transaction createTransaction(Transaction transaction) {
@@ -71,82 +71,84 @@ public class serviceImpl implements Service {
 
 
   @Override
-    public List<Transaction> getAllTransaction() {
-        return transRepo.findAll();
-    }
+  public List<Transaction> getAllTransaction() {
+    return transRepo.findAll();
+  }
 
-    @Override
-    public List<Transaction> getAllTransactionById(String party) {
-        return transRepo.findAllByName(party);
-    }
-
-
-    public DaybookResponse getDaybook(LocalDate date) {
-      LocalDateTime startOfDay = date.atStartOfDay();
-      LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
-
-      List<Transaction> transactions = transRepo.findByCreatedAtBetween(startOfDay, endOfDay);
-
-      // Calculate totals
-      int saleTotal = transactions.stream()
-        .filter(t -> "sale".equalsIgnoreCase(t.getType().name()))
-        .mapToInt(t -> t.getAmount() != null ? t.getAmount() : 0)
-        .sum();
-
-      int purchaseTotal = transactions.stream()
-        .filter(t -> "purchase".equalsIgnoreCase(t.getType().name()))
-        .mapToInt(t -> t.getAmount() != null ? t.getAmount() : 0)
-        .sum();
-
-      int cashInTotal = transactions.stream()
-        .mapToInt(t -> t.getCashIn() != null ? t.getCashIn() : 0)
-        .sum();
-
-      int cashIn =transaction.stream()
-        .filter(t -> "cashin".equalsIgnoreCase(t.getType().name()))
-        .mapToInt(t -> t.getAmount() != null ? t.getAmount() : 0)
-        .sum();
-      cashInTotal += cashIn;
-      int cashOutTotal = transactions.stream()
-        .mapToInt(t -> t.getCashOut() != null ? t.getCashOut() : 0)
-        .sum();
-
-      int cashOut =transaction.stream()
-        .filter(t -> "cashout".equalsIgnoreCase(t.getType().name()))
-        .mapToInt(t -> t.getAmount() != null ? t.getAmount() : 0)
-        .sum();
-      cashOutTotal += cashOut;
-
-      int metalPurchasedTotal = transactions.stream()
-        .filter(t -> "purchase".equalsIgnoreCase(t.getType().name()))
-        .mapToInt(t -> t.getNetWt() != null ? t.getNetWt() : 0)
-        .sum();
-      int metalSoldTotal = transactions.stream()
-        .filter(t -> "sale".equalsIgnoreCase(t.getType().name()))
-        .mapToInt(t -> t.getNetWt() != null ? t.getNetWt() : 0)
-        .sum();
-      int metalInTotal = transactions.stream()
-        .filter(t -> "metalin".equalsIgnoreCase(t.getType().name()))
-        .mapToInt(t -> t.getNetWt() != null ? t.getNetWt() : 0)
-        .sum();
-      int metalOutTotal = transactions.stream()
-        .filter(t -> "metalout".equalsIgnoreCase(t.getType().name())) 
-        .mapToInt(t -> t.getNetWt() != null ? t.getNetWt() : 0)
-        .sum();
-
-      int net = metalPurchasedTotal + metalInTotal - metalSoldTotal - metalOutTotal;
-
-
-      // Map transactions to DaybookEntry DTO if needed
-
-      // Build response
-      DaybookResponse response = new DaybookResponse();
-      response.setDate(date.toString());
-      response.setEntries(transactions);
-      response.setTotals(new DaybookResponse.Totals(saleTotal, purchaseTotal, cashInTotal, cashOutTotal, net));
-
-      return response;
-    }
+  @Override
+  public List<Transaction> getAllTransactionById(String party) {
+    return transRepo.findAllByName(party);
   }
 
 
+  public DaybookResponse getDaybook(LocalDate date) {
+    LocalDateTime startOfDay = date.atStartOfDay();
+    LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+
+    List<Transaction> transactions = transRepo.findByCreatedAtBetween(startOfDay, endOfDay);
+
+    // Calculate totals
+    int saleTotal = transactions.stream()
+      .filter(t -> "sale".equalsIgnoreCase(t.getType().name()))
+      .mapToInt(t -> t.getAmount() != null ? t.getAmount() : 0)
+      .sum();
+
+    int purchaseTotal = transactions.stream()
+      .filter(t -> "purchase".equalsIgnoreCase(t.getType().name()))
+      .mapToInt(t -> t.getAmount() != null ? t.getAmount() : 0)
+      .sum();
+
+    int cashInTotal = transactions.stream()
+      .mapToInt(t -> t.getCashIn() != null ? t.getCashIn() : 0)
+      .sum();
+
+    int cashIn =  transactions.stream()
+      .filter(t -> "cashin".equalsIgnoreCase(t.getType().name()))
+      .mapToInt(t -> t.getAmount() != null ? t.getAmount() : 0)
+      .sum();
+    cashInTotal += cashIn;
+    int cashOutTotal = transactions.stream()
+      .mapToInt(t -> t.getCashOut() != null ? t.getCashOut() : 0)
+      .sum();
+
+    int cashOut =transactions.stream()
+      .filter(t -> "cashout".equalsIgnoreCase(t.getType().name()))
+      .mapToInt(t -> t.getAmount() != null ? t.getAmount() : 0)
+      .sum();
+    cashOutTotal += cashOut;
+
+    BigDecimal metalPurchasedTotal = transactions.stream()
+      .filter(t -> "purchase".equalsIgnoreCase(t.getType().name()))
+      .map(t -> t.getNetWt() != null ? t.getNetWt() : BigDecimal.ZERO)
+      .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+    BigDecimal metalSoldTotal = transactions.stream()
+      .filter(t -> "sale".equalsIgnoreCase(t.getType().name()))
+      .map(t -> t.getNetWt() != null ? t.getNetWt() : BigDecimal.ZERO)
+      .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+    BigDecimal metalInTotal = transactions.stream()
+      .filter(t -> "metalin".equalsIgnoreCase(t.getType().name()))
+      .map(t -> t.getNetWt() != null ? t.getNetWt() : BigDecimal.ZERO)
+      .reduce(BigDecimal.ZERO, BigDecimal::add);
+    BigDecimal metalOutTotal = transactions.stream()
+      .filter(t -> "metalout".equalsIgnoreCase(t.getType().name()))
+      .map(t -> t.getNetWt() != null ? t.getNetWt() : BigDecimal.ZERO)
+      .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+    BigDecimal net = metalPurchasedTotal
+      .add(metalInTotal)
+      .subtract(metalSoldTotal)
+      .subtract(metalOutTotal);
+
+    // Map transactions to DaybookEntry DTO if needed
+
+    // Build response
+    DaybookResponse response = new DaybookResponse();
+    response.setDate(date.toString());
+    response.setEntries(transactions);
+    response.setTotals(new DaybookResponse.Totals(saleTotal, purchaseTotal, cashInTotal, cashOutTotal, net));
+
+    return response;
+  }
+}
