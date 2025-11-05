@@ -102,11 +102,40 @@ public class serviceImpl implements Service {
         .mapToInt(t -> t.getCashIn() != null ? t.getCashIn() : 0)
         .sum();
 
+      int cashIn =transaction.stream()
+        .filter(t -> "cashin".equalsIgnoreCase(t.getType().name()))
+        .mapToInt(t -> t.getAmount() != null ? t.getAmount() : 0)
+        .sum();
+      cashInTotal += cashIn;
       int cashOutTotal = transactions.stream()
         .mapToInt(t -> t.getCashOut() != null ? t.getCashOut() : 0)
         .sum();
 
-      int net = saleTotal - purchaseTotal + cashInTotal - cashOutTotal;
+      int cashOut =transaction.stream()
+        .filter(t -> "cashout".equalsIgnoreCase(t.getType().name()))
+        .mapToInt(t -> t.getAmount() != null ? t.getAmount() : 0)
+        .sum();
+      cashOutTotal += cashOut;
+
+      int metalPurchasedTotal = transactions.stream()
+        .filter(t -> "purchase".equalsIgnoreCase(t.getType().name()))
+        .mapToInt(t -> t.getNetWt() != null ? t.getNetWt() : 0)
+        .sum();
+      int metalSoldTotal = transactions.stream()
+        .filter(t -> "sale".equalsIgnoreCase(t.getType().name()))
+        .mapToInt(t -> t.getNetWt() != null ? t.getNetWt() : 0)
+        .sum();
+      int metalInTotal = transactions.stream()
+        .filter(t -> "metalin".equalsIgnoreCase(t.getType().name()))
+        .mapToInt(t -> t.getNetWt() != null ? t.getNetWt() : 0)
+        .sum();
+      int metalOutTotal = transactions.stream()
+        .filter(t -> "metalout".equalsIgnoreCase(t.getType().name())) 
+        .mapToInt(t -> t.getNetWt() != null ? t.getNetWt() : 0)
+        .sum();
+
+      int net = metalPurchasedTotal + metalInTotal - metalSoldTotal - metalOutTotal;
+
 
       // Map transactions to DaybookEntry DTO if needed
 
@@ -119,4 +148,5 @@ public class serviceImpl implements Service {
       return response;
     }
   }
+
 
