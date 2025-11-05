@@ -18,7 +18,8 @@ public class DaybookResponse {
     private int purchase;
     private int cashin;
     private int cashout;
-    private int net;
+    private BigDecimal net;
   }
 }
+
 
