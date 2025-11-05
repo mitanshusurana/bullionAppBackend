@@ -13,8 +13,8 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/api/**") // apply CORS to API paths
-                        .allowedOrigins("http://localhost:4200","http://localhost:8080","https://goldledgerbackend.onrender.com") // Angular dev server
+                registry.addMapping("/**") // apply to all paths
+                        .allowedOriginPatterns("*") // allow any origin
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
@@ -22,4 +22,3 @@ public class CorsConfig {
         };
     }
 }
-
