@@ -56,6 +56,7 @@ public class serviceImpl implements Service {
         BigDecimal cashChange = new BigDecimal(transaction.getBalance().toString());
         update.inc("cashBalance", cashChange);
       }
+
       case metalin, metalout -> {
         BigDecimal metalChange = new BigDecimal(transaction.getNetWt().toString());
         if (type == TransactionType.metalout) {
@@ -63,8 +64,26 @@ public class serviceImpl implements Service {
         }
         update.inc("metalBalance", metalChange);
       }
+
+      case ratecutPurchase -> {
+        // Treat cash like sale/purchase (handled by balance), metal should increase
+        BigDecimal cashChange = new BigDecimal(transaction.getBalance().toString());
+        BigDecimal metalChange = new BigDecimal(transaction.getNetWt().toString());
+        update.inc("cashBalance", cashChange);
+        update.inc("metalBalance", metalChange);
+      }
+
+      case rateCutsales -> {
+        // Treat cash like sale/purchase (handled by balance), metal should decrease
+        BigDecimal cashChange = new BigDecimal(transaction.getBalance().toString());
+        BigDecimal metalChange = new BigDecimal(transaction.getNetWt().toString()).negate();
+        update.inc("cashBalance", cashChange);
+        update.inc("metalBalance", metalChange);
+      }
+
       default -> throw new IllegalArgumentException("Unsupported transaction type: " + type);
     }
+
 
     mongoTemplate.updateFirst(query, update, User.class);
     return transRepo.insert(transaction);
