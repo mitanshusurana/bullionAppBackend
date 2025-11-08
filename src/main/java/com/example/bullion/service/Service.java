@@ -20,5 +20,5 @@ public interface Service {
 
     List<Transaction> getAllTransactionById(String party);
 
-  DaybookResponse getDaybook(LocalDate date);
+  DaybookResponse getDaybook(String date);
 }

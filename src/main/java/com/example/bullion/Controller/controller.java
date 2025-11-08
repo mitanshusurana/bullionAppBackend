@@ -61,7 +61,7 @@ public class controller {
 
   @GetMapping("/daybook")
   public DaybookResponse getDaybook(
-    @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+    @RequestParam("date") String date) {
 
     // Calls service to get transactions for the day
     return service.getDaybook(date);

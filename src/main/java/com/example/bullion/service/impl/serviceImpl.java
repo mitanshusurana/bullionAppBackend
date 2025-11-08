@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @org.springframework.stereotype.Service
@@ -81,13 +82,10 @@ public class serviceImpl implements Service {
   }
 
 
-  public DaybookResponse getDaybook(LocalDate date) {
-    LocalDateTime startOfDay = date.atStartOfDay();
-    LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+  public DaybookResponse getDaybook(String date) {
 
-    List<Transaction> transactions = transRepo.findByCreatedAtBetween(startOfDay, endOfDay);
+    List<Transaction> transactions = transRepo.findAllByDate(date);
 
-    // Calculate totals
     int saleTotal = transactions.stream()
       .filter(t -> "sale".equalsIgnoreCase(t.getType().name()))
       .mapToInt(t -> t.getAmount() != null ? t.getAmount() : 0)
