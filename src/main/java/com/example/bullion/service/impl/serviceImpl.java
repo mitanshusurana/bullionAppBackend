@@ -59,7 +59,7 @@ public class serviceImpl implements Service {
 
       case metalin, metalout -> {
         BigDecimal metalChange = new BigDecimal(transaction.getNetWt().toString());
-        if (type == TransactionType.metalout) {
+        if (type == TransactionType.metalin) {
           metalChange = metalChange.negate();
         }
         update.inc("metalBalance", metalChange);
